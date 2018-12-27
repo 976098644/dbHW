@@ -1,19 +1,24 @@
 delimiter //
     create procedure add_purchase(pur_no varchar(4), c_id varchar(4), e_id varchar(3), p_id varchar(4), pur_qty int(5))
-    begin
-        set @now = CURRENT_TIMESTAMP();
-        if (0 < pur_qty and pur_qty <= (select qoh from products where p_id = pid)) then
-            insert into purchases values( pur_no, c_id, e_id, p_id, pur_qty, @now, 
-            (select pur_qty*original_price*(1-discnt_rate) from products where p_id = pid));
-            update products set qoh = qoh-pur_qty where pid = p_id;
-            set @res = '购买成功';
-        else
-            set @res = '库存量不足';
+begin
+    DECLARE discnt FLOAT;
+    DECLARE leftqoh, threshold INT(5);
+    select pur_qty*original_price*(1-discnt_rate), qoh-pur_qty, qoh_threshold into discnt, leftqoh, threshold from products where p_id = pid;
+    set @now = CURRENT_TIMESTAMP();
+    if (0 < pur_qty and pur_qty <= (select qoh from products where p_id = pid)) then
+        insert into purchases values( pur_no, c_id, e_id, p_id, pur_qty, @now, discnt);
+        update products set qoh = leftqoh where pid = p_id;
+        if(leftqoh < threshold) then
+            call replenish_stocks(p_id, pur_qty, leftqoh);
         end if;
-    end
-    end //
+        set @res = '购买成功';
+    else
+        set @res = '库存量不足';
+    end if;
+end //
 delimiter ;
 //call add_purchase('p111', 'c004', 'e04', 'pr05', '1');
+//INSERT INTO `purchases` VALUES('p111', 'c004', 'e04', 'pr05', '1', CURRENT_TIMESTAMP(), 1);
 
 delimiter //
     create procedure add_product(p_id varchar(4), p_name varchar(15), q_oh int(5), q_ohth int(5), o_price decimal(6,2), d_rate decimal(3,2), s_id varchar(2))
@@ -36,14 +41,14 @@ delimiter ;
 delimiter //
     create TRIGGER after_update_products after update on products for each row
     begin
-        INSERT into logs ( table_name, operation, key_value) values(  'products', 'update', new.pid);
+        INSERT into logs ( time, table_name, operation, key_value) values( CURRENT_TIMESTAMP(), 'products', 'update', new.pid);
     end //
 delimiter ;
 
 delimiter //
     create TRIGGER after_update_customers after update on customers for each row
     begin
-        INSERT into logs ( table_name, operation, key_value) values(  'vustomers', 'update', new.cid);
+        INSERT into logs ( time, table_name, operation, key_value) values( CURRENT_TIMESTAMP(), 'customers', 'update', new.cid);
     end //
 delimiter ;
 

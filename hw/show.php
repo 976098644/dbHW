@@ -9,12 +9,13 @@ include 'conn.php';
 $para = $_POST['tablename'];
 $sql = 'call show_' . $para . '()';
 $res = $conn->query($sql);
+
 if($res){
     header('Content-type:application/json; charset=utf-8');
     $row = $res->num_rows;
     $array = array();
     while($row--) {
-        $dbrow = $res->fetch_row();
+        $dbrow = $res->fetch_assoc();
         array_push($array, $dbrow);
     }
     echo json_encode($array);
