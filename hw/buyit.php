@@ -26,17 +26,62 @@
     <form class="form-horizontal" role="form">
         <h3 style="text-align: center">购物车</h3>
         <div class="form-group">
-            <label for="pid" class="col-sm-4 control-label">pid</label>
-            <div class="col-sm-4">
-                <input type="text" class="form-control" id="pid"
-                       placeholder="pid">
-            </div>
+            <label class="col-sm-4 control-label">pid</label>
+            <h4 class="col-sm-4">
+                <?php echo $_GET['pid'];?>
+            </h4>
         </div>
         <div class="form-group">
             <label for="pname" class="col-sm-4 control-label">pname</label>
+            <h4 class="col-sm-4">
+                <?php echo $_GET['pname'];?>
+            </h4>
+        </div>
+        <div class="form-group">
+            <label for="original_price" class="col-sm-4 control-label">price</label>
+            <h4 class="col-sm-4">
+                <?php echo $_GET['price'];?>
+            </h4>
+        </div>
+        <div class="form-group">
+            <label for="cid" class="col-sm-4 control-label">cid</label>
             <div class="col-sm-4">
-                <input type="text" class="form-control" id="pname"
-                       placeholder="pname">
+                <select class="form-control" id="cid">
+                    <?php
+                    include 'conn.php';
+                    $sql = "select cid, cname from `customers`;";
+                    $res = $conn->query($sql);
+                    $row = $res->num_rows;
+                    if($res){
+                        while($row--) {
+                            $dbrow = $res->fetch_assoc();
+                            $eid = $dbrow['cid'];
+                            $ename = $dbrow['cname'];
+                            echo "<option>$eid $ename</option>\n";
+                        }
+                    }
+                    ?>
+                </select>
+            </div>
+        </div>
+        <div class="form-group">
+            <label for="eid" class="col-sm-4 control-label">eid</label>
+            <div class="col-sm-4">
+                <select class="form-control" id="eid">
+                    <?php
+                    $sql = "select eid, ename from `employees`;";
+                    $res = $conn->query($sql);
+                    $row = $res->num_rows;
+                    if($res){
+                        while($row--) {
+                            $dbrow = $res->fetch_assoc();
+                            $eid = $dbrow['eid'];
+                            $ename = $dbrow['ename'];
+                            echo "<option>$eid $ename</option>\n";
+                        }
+                    }
+                    ?>
+                </select>
             </div>
         </div>
         <div class="form-group">
@@ -47,40 +92,24 @@
             </div>
         </div>
         <div class="form-group">
-            <label for="qoh_threshold" class="col-sm-4 control-label">qoh_threshold</label>
-            <div class="col-sm-4">
-                <input type="text" class="form-control" id="qoh_threshold"
-                       placeholder="qoh_threshold">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="original_price" class="col-sm-4 control-label">original_price</label>
-            <div class="col-sm-4">
-                <input type="text" class="form-control" id="original_price"
-                       placeholder="original_price">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="discnt_cnt" class="col-sm-4 control-label">discnt_cnt</label>
-            <div class="col-sm-4">
-                <input type="text" class="form-control" id="discnt_cnt"
-                       placeholder="discnt_cnt">
-            </div>
-        </div>
-        <div class="form-group">
-            <label for="sid" class="col-sm-4 control-label">sid</label>
-            <div class="col-sm-4">
-                <input type="text" class="form-control" id="sid"
-                       placeholder="sid">
-            </div>
-        </div>
-        <div class="form-group">
             <div class="col-sm-offset-4 col-sm-4">
-                <button type="submit" class="btn btn-default">确定购买</button>
+                <button type="button" class="btn btn-default" onclick="buy()">确定购买</button>
             </div>
         </div>
     </form>
 </div>
+<script>
+    function buy() {
+        var cid = $('#cid option:selected').text().split(' ')[0];
+        var eid = $('#eid option:selected').text().split(' ')[0];
+        var qoh = $('#qoh').val();
+        $.post('add.php', {'cid':cid, 'eid':eid, 'qoh':qoh},alert('yes'));
+    }
+</script>
+<!-- jQuery (Bootstrap 的所有 JavaScript 插件都依赖 jQuery，所以必须放在前边) -->
+<script src="https://cdn.jsdelivr.net/npm/jquery@1.12.4/dist/jquery.min.js"></script>
+<!-- 加载 Bootstrap 的所有 JavaScript 插件。你也可以根据需要只加载单个插件。 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@3.3.7/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
 
